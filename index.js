@@ -1,9 +1,9 @@
 const puppeteer = require('puppeteer');
 require('dotenv').config()
 
-async function run() {
+async function run(selector) {
     // Launch the browser
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ headless: false, defaultViewport: null });
     // Create a new page
     const page = await browser.newPage();
     // Go to log in page
@@ -16,16 +16,31 @@ async function run() {
     await page.click('#botonLogin');
     // Wait for the page to load
     await page.waitForSelector('#card-revisa-consumo');
-    // Take screenshot
-    // await page.screenshot({ path: 'movistar_screenshot.png' });
     // Go to club-movistar page
     await page.goto('https://mi.movistar.cl/svr/#/main/club-movistar');
-    // Wait for the page to load
+    // Wait for club-movistar page to load
+    await page.waitForNavigation({waitUntil: 'networkidle0'});    
+    const srcs = await page.$$eval("img", elements => {
+        elements.forEach(element => {
+            if (element.src == "https://club.movistar.cl/media/beneficios/8db71cd5-8539-4e1f-b48b-b89d2ff606d0.jpg" ){
+                element.click();
+            };
+        });
+        return elements.map(element => element.src);
+    });
+    console.log(srcs);
     await page.waitForNavigation({waitUntil: 'networkidle0'});
-    // Take screenshot
-    // await page.screenshot({ path: 'club_movistar_screenshot.png' });
+    // take screenshot
+    await page.screenshot({ path: 'screenshot.png' });
+    //await page.evaluate((selector) =>  document.querySelector(selector).click(), selector);
+    //await page
+    await new Promise(r => setTimeout(r, 50000));
+    await page.waitForNavigation({waitUntil: 'networkidle0'});
     // Close the browser
     await browser.close();
 }
 
-run();
+selector = '[src=\'https://club.movistar.cl/media/beneficios/8db71cd5-8539-4e1f-b48b-b89d2ff606d0.jpg\']';
+run(selector);
+
+
