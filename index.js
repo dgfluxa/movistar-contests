@@ -19,28 +19,22 @@ async function run(selector) {
     // Go to club-movistar page
     await page.goto('https://mi.movistar.cl/svr/#/main/club-movistar');
     // Wait for club-movistar page to load
-    await page.waitForNavigation({waitUntil: 'networkidle0'});    
-    const srcs = await page.$$eval("img", elements => {
-        elements.forEach(element => {
-            if (element.src == "https://club.movistar.cl/media/beneficios/8db71cd5-8539-4e1f-b48b-b89d2ff606d0.jpg" ){
-                element.click();
-            };
-        });
-        return elements.map(element => element.src);
-    });
-    console.log(srcs);
-    await page.waitForNavigation({waitUntil: 'networkidle0'});
-    // take screenshot
+    await page.waitForNavigation({waitUntil: 'networkidle0'});  
+    // Wait for iframe
+    const elementHandle = await page.waitForSelector('.content-iframe');
+    // Get the iframe element
+    const frame = await elementHandle.contentFrame();
+    // Wait for contest button to load
+    await frame.waitForSelector('.ion-no-padding.ion-no-margin.ion-text-center.ion-align-self-center.nv-padding-8.cursePointer.opcion-no-active.md.hydrated'); 
+    // Go to contest list by clicking "Concursos" button
+    await frame.click('.ion-no-padding.ion-no-margin.ion-text-center.ion-align-self-center.nv-padding-8.cursePointer.opcion-no-active.md.hydrated');
+    // Take screenshot
     await page.screenshot({ path: 'screenshot.png' });
-    //await page.evaluate((selector) =>  document.querySelector(selector).click(), selector);
-    //await page
-    await new Promise(r => setTimeout(r, 50000));
-    await page.waitForNavigation({waitUntil: 'networkidle0'});
     // Close the browser
     await browser.close();
 }
 
-selector = '[src=\'https://club.movistar.cl/media/beneficios/8db71cd5-8539-4e1f-b48b-b89d2ff606d0.jpg\']';
+selector = 'text/concurso movistar arena 13 de enero';
 run(selector);
 
 
