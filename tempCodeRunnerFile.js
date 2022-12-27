@@ -1,1 +1,0 @@
-p[value="Concurso movistar arena 13 de enero"]
