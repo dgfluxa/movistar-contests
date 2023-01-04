@@ -25,46 +25,7 @@ async function clearText(page, selector) {
   }, selector);
 }
 
-// Main function
-async function run(contestText) {
-  // Launch the browser
-  const browser = await puppeteer.launch({
-    headless: false,
-    defaultViewport: null,
-  });
-  // Create a new page
-  const page = await browser.newPage();
-
-  // Go to log in page
-  await page.goto(
-    "https://acceso.movistar.cl/SSO_AU_WEB/loginAction.do?_ga=2.129519564.1703626475.1669748900-1960901754.1669748900"
-  );
-  // Type in username
-  await page.type("#username", process.env.RUT);
-  // Type in password
-  await page.type("#password", process.env.PASSWORD);
-  // Click on the login button
-  await page.click("#botonLogin");
-  // Wait for the page to load
-  await page.waitForSelector("#card-revisa-consumo");
-
-  // Go to club-movistar page
-  await page.goto("https://mi.movistar.cl/svr/#/main/club-movistar");
-  // Wait for club-movistar page to load
-  await page.waitForNavigation({ waitUntil: "networkidle0" });
-  // Wait for iframe
-  const elementHandle = await page.waitForSelector(".content-iframe");
-  // Get the iframe element
-  const frame = await elementHandle.contentFrame();
-  // Wait for contest button to load
-  await frame.waitForSelector(
-    ".ion-no-padding.ion-no-margin.ion-text-center.ion-align-self-center.nv-padding-8.cursePointer.opcion-no-active.md.hydrated"
-  );
-
-  // Go to contest list by clicking "Concursos" button
-  await frame.click(
-    ".ion-no-padding.ion-no-margin.ion-text-center.ion-align-self-center.nv-padding-8.cursePointer.opcion-no-active.md.hydrated"
-  );
+async function submitForm(page, frame, contestText) {
   // Wait some time for desired contest to load (Just in case)
   await new Promise((r) => setTimeout(r, 500));
   // Scroll to bottom of page
@@ -117,6 +78,61 @@ async function run(contestText) {
   );
   await entry_button[0].click();
 
+  // Wait some time for page to load (Just in case)
+  await new Promise((r) => setTimeout(r, 500));
+
+  // Return to list of contests
+  const return_button = await frame.$$(
+    "xpath/" +
+      "/html/body/app-root/app-concursos/div/concursos-ok/ion-content/ion-grid/ion-row/ion-col/div/ion-row[5]/ion-col[1]/button"
+  );
+  await return_button[0].click();
+}
+
+// Main function
+async function run(contestText) {
+  // Launch the browser
+  const browser = await puppeteer.launch({
+    headless: false,
+    defaultViewport: null,
+  });
+  // Create a new page
+  const page = await browser.newPage();
+
+  // Go to log in page
+  await page.goto(
+    "https://acceso.movistar.cl/SSO_AU_WEB/loginAction.do?_ga=2.129519564.1703626475.1669748900-1960901754.1669748900"
+  );
+  // Type in username
+  await page.type("#username", process.env.RUT);
+  // Type in password
+  await page.type("#password", process.env.PASSWORD);
+  // Click on the login button
+  await page.click("#botonLogin");
+  // Wait for the page to load
+  await page.waitForSelector("#card-revisa-consumo");
+
+  // Go to club-movistar page
+  await page.goto("https://mi.movistar.cl/svr/#/main/club-movistar");
+  // Wait for club-movistar page to load
+  await page.waitForNavigation({ waitUntil: "networkidle0" });
+  // Wait for iframe
+  const elementHandle = await page.waitForSelector(".content-iframe");
+  // Get the iframe element
+  const frame = await elementHandle.contentFrame();
+  // Wait for contest button to load
+  await frame.waitForSelector(
+    ".ion-no-padding.ion-no-margin.ion-text-center.ion-align-self-center.nv-padding-8.cursePointer.opcion-no-active.md.hydrated"
+  );
+
+  // Go to contest list by clicking "Concursos" button
+  await frame.click(
+    ".ion-no-padding.ion-no-margin.ion-text-center.ion-align-self-center.nv-padding-8.cursePointer.opcion-no-active.md.hydrated"
+  );
+
+  // Find contest and submit form
+  await submitForm(page, frame, contestText);
+  
   // Wait some time for page to load (Just in case)
   await new Promise((r) => setTimeout(r, 3000));
   // Take screenshot
