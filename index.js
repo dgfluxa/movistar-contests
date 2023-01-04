@@ -65,6 +65,15 @@ async function run(contestText) {
   await clickByText(frame, contestText);
   // Wait some time for page to load (Just in case)
   await new Promise((r) => setTimeout(r, 500));
+  // Click "Si" button
+  // await frame.click("#ion-rb-3-lbl");
+  const yes_button = await frame.$$(
+    "xpath/" +
+      "//html/body/app-root/app-concursos/div/concursos-select/ion-content/ion-grid/ion-row/ion-col/div/div/select-group-concurso-club/select-concurso-club/div/ion-row[2]/ion-col/ion-radio-group/div[2]/ion-item"
+  );
+  await yes_button[0].click();
+  // Wait some time for page to load (Just in case)
+  await new Promise((r) => setTimeout(r, 1000));
   // Take screenshot
   await page.screenshot({ path: "screenshot.png" });
   // Close the browser
