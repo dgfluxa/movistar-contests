@@ -25,6 +25,7 @@ async function clearText(page, selector) {
   }, selector);
 }
 
+// Main function
 async function run(contestText) {
   // Launch the browser
   const browser = await puppeteer.launch({
@@ -108,6 +109,13 @@ async function run(contestText) {
   await frame.type("#mat-input-3", process.env.EMAIL);
   // Phone
   await frame.type("#mat-input-4", process.env.PHONE);
+
+  // Click "Concursar" button
+  const entry_button = await frame.$$(
+    "xpath/" +
+      "//html/body/app-root/app-concursos/div/formulario-datos-personales/ion-content/ion-grid/ion-row/ion-col/form/div/ion-row[10]/ion-col/button"
+  );
+  await entry_button[0].click();
 
   // Wait some time for page to load (Just in case)
   await new Promise((r) => setTimeout(r, 3000));
