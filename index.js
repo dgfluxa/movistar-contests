@@ -11,7 +11,7 @@ const escapeXpathString = (str) => {
 const clickByText = async (page, text) => {
   const escapedText = escapeXpathString(text);
   const linkHandlers = await page.$x(`//*[contains(text(), ${escapedText})]`);
-  
+
   if (linkHandlers.length > 0) {
     await linkHandlers[0].click();
   } else {
@@ -58,7 +58,7 @@ async function run(contestText) {
   // Wait some time for desired contest to load (Just in case)
   await new Promise((r) => setTimeout(r, 500));
   // Scroll to bottom of page
-  await page.keyboard.down('End')
+  await page.keyboard.down("End");
   // Wait some time to reach bottom of page (Just in case)
   await new Promise((r) => setTimeout(r, 500));
   // Click on desired contest
