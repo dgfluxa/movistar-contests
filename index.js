@@ -19,6 +19,12 @@ const clickByText = async (page, text) => {
   }
 };
 
+async function clearText(page, selector) {
+  await page.evaluate((selector) => {
+    document.querySelector(selector).value = "";
+  }, selector);
+}
+
 async function run(contestText) {
   // Launch the browser
   const browser = await puppeteer.launch({
@@ -27,6 +33,7 @@ async function run(contestText) {
   });
   // Create a new page
   const page = await browser.newPage();
+
   // Go to log in page
   await page.goto(
     "https://acceso.movistar.cl/SSO_AU_WEB/loginAction.do?_ga=2.129519564.1703626475.1669748900-1960901754.1669748900"
@@ -39,6 +46,7 @@ async function run(contestText) {
   await page.click("#botonLogin");
   // Wait for the page to load
   await page.waitForSelector("#card-revisa-consumo");
+
   // Go to club-movistar page
   await page.goto("https://mi.movistar.cl/svr/#/main/club-movistar");
   // Wait for club-movistar page to load
@@ -51,6 +59,7 @@ async function run(contestText) {
   await frame.waitForSelector(
     ".ion-no-padding.ion-no-margin.ion-text-center.ion-align-self-center.nv-padding-8.cursePointer.opcion-no-active.md.hydrated"
   );
+
   // Go to contest list by clicking "Concursos" button
   await frame.click(
     ".ion-no-padding.ion-no-margin.ion-text-center.ion-align-self-center.nv-padding-8.cursePointer.opcion-no-active.md.hydrated"
@@ -65,20 +74,43 @@ async function run(contestText) {
   await clickByText(frame, contestText);
   // Wait some time for page to load (Just in case)
   await new Promise((r) => setTimeout(r, 500));
-  // Click "Si" button
+
+  // Wait and click "Si" button
   const yes_button = await frame.$$(
     "xpath/" +
       "//html/body/app-root/app-concursos/div/concursos-select/ion-content/ion-grid/ion-row/ion-col/div/div/select-group-concurso-club/select-concurso-club/div/ion-row[2]/ion-col/ion-radio-group/div[2]/ion-item"
   );
   await yes_button[0].click();
-  // Click "Continuar" button
+  // Wait and click "Continuar" button
   const continue_button = await frame.$$(
     "xpath/" +
-    "//html/body/app-root/app-concursos/div/concursos-select/ion-content/ion-grid/ion-row/ion-col/div/ion-row[2]/ion-col/button"
+      "//html/body/app-root/app-concursos/div/concursos-select/ion-content/ion-grid/ion-row/ion-col/div/ion-row[2]/ion-col/button"
   );
   await continue_button[0].click();
   // Wait some time for page to load (Just in case)
-  await new Promise((r) => setTimeout(r, 1000));
+  await new Promise((r) => setTimeout(r, 500));
+
+  // Empty form
+  await clearText(frame, "#mat-input-0");
+  await clearText(frame, "#mat-input-1");
+  await clearText(frame, "#mat-input-2");
+  await clearText(frame, "#mat-input-3");
+  await clearText(frame, "#mat-input-4");
+
+  // Fill Form
+  // Name
+  await frame.type("#mat-input-0", process.env.NAME);
+  // Last Name
+  await frame.type("#mat-input-1", process.env.LAST_NAME);
+  // RUT
+  await frame.type("#mat-input-2", process.env.RUT2);
+  // Email
+  await frame.type("#mat-input-3", process.env.EMAIL);
+  // Phone
+  await frame.type("#mat-input-4", process.env.PHONE);
+
+  // Wait some time for page to load (Just in case)
+  await new Promise((r) => setTimeout(r, 3000));
   // Take screenshot
   await page.screenshot({ path: "screenshot.png" });
   // Close the browser
