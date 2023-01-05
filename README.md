@@ -2,7 +2,7 @@
 ## Introduction
 Movistar-Contests is a project to automate the web-process of submitting entries in a contest from Movistar (Club-Movistar page) using web scrapping with puppeteer in node js. The chosen contest has to be identified by the text presented in the web page and should allow multiple entries. 
 
-This project was born due to the frustration of doing this process by hand because of the bad user experience of this Movistar's site.
+This project was born due to the frustration of doing this process by hand because of the bad user experience of Movistar's site.
 
 Movistar-Contests main objective is to learn to use web-scrappers for web automatation, have fun doing so and maybe win some contests :money_mouth_face: .
 
