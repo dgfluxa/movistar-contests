@@ -1,0 +1,7 @@
+.env
+node_modules
+*.png
+*.jpg
+package-lock.json
+tempCodeRunnerFile.js
+```
