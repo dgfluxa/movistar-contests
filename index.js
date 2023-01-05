@@ -10,6 +10,9 @@ const escapeXpathString = (str) => {
 
 const clickByText = async (page, text) => {
   const escapedText = escapeXpathString(text);
+  await page.waitForXPath(`//*[contains(text(), ${escapedText})]`, {
+    visible: true,
+  });
   const linkHandlers = await page.$x(`//*[contains(text(), ${escapedText})]`);
 
   if (linkHandlers.length > 0) {
@@ -27,50 +30,54 @@ async function clearText(page, selector) {
 
 // Submit Form (form ids change every time)
 async function submitForm(page, frame, contestText, time) {
-  // Wait some time for desired contest to load (Just in case)
-  await new Promise((r) => setTimeout(r, 500));
   // Scroll to bottom of page
   await page.keyboard.down("End");
-  // Wait some time to reach bottom of page (Just in case)
-  await new Promise((r) => setTimeout(r, 500));
   // Click on desired contest
   await clickByText(frame, contestText);
-  // Wait some time for page to load (Just in case)
-  await new Promise((r) => setTimeout(r, 500));
 
   // Wait and click "Si" button
+  await frame.waitForXPath(
+    "//html/body/app-root/app-concursos/div/concursos-select/ion-content/ion-grid/ion-row/ion-col/div/div/select-group-concurso-club/select-concurso-club/div/ion-row[2]/ion-col/ion-radio-group/div[2]/ion-item",
+    { visible: true }
+  );
   const yes_button = await frame.$$(
     "xpath/" +
       "//html/body/app-root/app-concursos/div/concursos-select/ion-content/ion-grid/ion-row/ion-col/div/div/select-group-concurso-club/select-concurso-club/div/ion-row[2]/ion-col/ion-radio-group/div[2]/ion-item"
   );
   await yes_button[0].click();
+
   // Wait and click "Continuar" button
+  await frame.waitForXPath(
+    "//html/body/app-root/app-concursos/div/concursos-select/ion-content/ion-grid/ion-row/ion-col/div/ion-row[2]/ion-col/button",
+    { visible: true }
+  );
   const continue_button = await frame.$$(
     "xpath/" +
       "//html/body/app-root/app-concursos/div/concursos-select/ion-content/ion-grid/ion-row/ion-col/div/ion-row[2]/ion-col/button"
   );
   await continue_button[0].click();
-  // Wait some time for page to load (Just in case)
-  await new Promise((r) => setTimeout(r, 500));
+
+  // Wait for selector to appear
+  await frame.waitForSelector(`#mat-input-${time}`, { visible: true });
 
   // Empty form
   await clearText(frame, `#mat-input-${time}`);
-  await clearText(frame, `#mat-input-${time+1}`);
-  await clearText(frame, `#mat-input-${time+2}`);
-  await clearText(frame, `#mat-input-${time+3}`);
-  await clearText(frame, `#mat-input-${time+4}`);
+  await clearText(frame, `#mat-input-${time + 1}`);
+  await clearText(frame, `#mat-input-${time + 2}`);
+  await clearText(frame, `#mat-input-${time + 3}`);
+  await clearText(frame, `#mat-input-${time + 4}`);
 
   // Fill Form
   // Name
   await frame.type(`#mat-input-${time}`, process.env.NAME);
   // Last Name
-  await frame.type(`#mat-input-${time+1}`, process.env.LAST_NAME);
+  await frame.type(`#mat-input-${time + 1}`, process.env.LAST_NAME);
   // RUT
-  await frame.type(`#mat-input-${time+2}`, process.env.RUT2);
+  await frame.type(`#mat-input-${time + 2}`, process.env.RUT2);
   // Email
-  await frame.type(`#mat-input-${time+3}`, process.env.EMAIL);
+  await frame.type(`#mat-input-${time + 3}`, process.env.EMAIL);
   // Phone
-  await frame.type(`#mat-input-${time+4}`, process.env.PHONE);
+  await frame.type(`#mat-input-${time + 4}`, process.env.PHONE);
 
   // Click "Concursar" button
   const entry_button = await frame.$$(
@@ -79,15 +86,39 @@ async function submitForm(page, frame, contestText, time) {
   );
   await entry_button[0].click();
 
-  // Wait some time for page to load (Just in case)
-  await new Promise((r) => setTimeout(r, 500));
-
   // Return to list of contests
+  await frame.waitForXPath(
+    "//html/body/app-root/app-concursos/div/concursos-ok/ion-content/ion-grid/ion-row/ion-col/div/ion-row[5]/ion-col[1]/button",
+    { visible: true }
+  );
   const return_button = await frame.$$(
     "xpath/" +
-      "/html/body/app-root/app-concursos/div/concursos-ok/ion-content/ion-grid/ion-row/ion-col/div/ion-row[5]/ion-col[1]/button"
+      "//html/body/app-root/app-concursos/div/concursos-ok/ion-content/ion-grid/ion-row/ion-col/div/ion-row[5]/ion-col[1]/button"
   );
   await return_button[0].click();
+
+  // Wait for contest button to load (go back to list of contests)
+  try {
+    await frame.waitForSelector(
+      ".ion-no-padding.ion-no-margin.ion-text-center.ion-align-self-center.nv-padding-8.cursePointer.opcion-no-active.md.hydrated",
+      { visible: true, timeout: 10000 }
+    );
+  } catch (error) {
+    // Catch common error while trying to go back
+    console.log(error);
+    console.log("Trying again...");
+    // Try to click return button again
+    const return_button = await frame.$$(
+      "xpath/" +
+        "//html/body/app-root/app-concursos/div/concursos-ok/ion-content/ion-grid/ion-row/ion-col/div/ion-row[5]/ion-col[1]/button"
+    );
+    await return_button[0].click();
+    // Wait for contest button to load (go back to list of contests)
+    await frame.waitForSelector(
+      ".ion-no-padding.ion-no-margin.ion-text-center.ion-align-self-center.nv-padding-8.cursePointer.opcion-no-active.md.hydrated",
+      { visible: true, timeout: 10000 }
+    );
+  }
 }
 
 // Main function
@@ -134,14 +165,13 @@ async function run(amount, contestText) {
   // Do for 'amount' times
   for (let i = 0; i < amount; i++) {
     // Find contest and submit form
-    await submitForm(page, frame, contestText, i*5);
+    await submitForm(page, frame, contestText, i * 5);
     console.log(`Entry N°${i + 1} submitted successfully!\n`);
   }
 
-  // Wait some time for page to load (Just in case)
-  await new Promise((r) => setTimeout(r, 3000));
-  // Take screenshot
-  await page.screenshot({ path: "screenshot.png" });
+  // Finished submitting entries
+  console.log("Finished submitting entries!");
+  
   // Close the browser
   await browser.close();
 }
