@@ -87,9 +87,6 @@ async function submitForm(page, frame, contestText, time) {
   await entry_button[0].click();
 
   await new Promise((r) => setTimeout(r, 2000));
-  
-  // Take screenshot of the page
-  await page.screenshot({ path: "screenshot.png" });
 
   // Return to list of contests
   await frame.waitForXPath(
@@ -138,7 +135,9 @@ async function run(amount, contestText) {
 
   if (process.env.HEADLESS.toLowerCase() == "true") {
     // Set User Agent
-    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36");
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
+    );
   }
 
   // Go to log in page
@@ -179,7 +178,7 @@ async function run(amount, contestText) {
 
   // Finished submitting entries
   console.log("Finished submitting entries!");
-  
+
   // Close the browser
   await browser.close();
 }
