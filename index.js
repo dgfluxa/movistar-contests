@@ -86,6 +86,11 @@ async function submitForm(page, frame, contestText, time) {
   );
   await entry_button[0].click();
 
+  await new Promise((r) => setTimeout(r, 2000));
+  
+  // Take screenshot of the page
+  await page.screenshot({ path: "screenshot.png" });
+
   // Return to list of contests
   await frame.waitForXPath(
     "//html/body/app-root/app-concursos/div/concursos-ok/ion-content/ion-grid/ion-row/ion-col/div/ion-row[5]/ion-col[1]/button",
@@ -125,11 +130,16 @@ async function submitForm(page, frame, contestText, time) {
 async function run(amount, contestText) {
   // Launch the browser
   const browser = await puppeteer.launch({
-    headless: false,
-    defaultViewport: null,
+    headless: process.env.HEADLESS.toLowerCase() === "true",
+    defaultViewport: { width: 1080, height: 1080 },
   });
   // Create a new page
   const page = await browser.newPage();
+
+  if (process.env.HEADLESS.toLowerCase() == "true") {
+    // Set User Agent
+    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36");
+  }
 
   // Go to log in page
   await page.goto(
@@ -146,17 +156,15 @@ async function run(amount, contestText) {
 
   // Go to club-movistar page
   await page.goto("https://mi.movistar.cl/svr/#/main/club-movistar");
-  // Wait for club-movistar page to load
-  await page.waitForNavigation({ waitUntil: "networkidle0" });
   // Wait for iframe
   const elementHandle = await page.waitForSelector(".content-iframe");
   // Get the iframe element
   const frame = await elementHandle.contentFrame();
+
   // Wait for contest button to load
   await frame.waitForSelector(
     ".ion-no-padding.ion-no-margin.ion-text-center.ion-align-self-center.nv-padding-8.cursePointer.opcion-no-active.md.hydrated"
   );
-
   // Go to contest list by clicking "Concursos" button
   await frame.click(
     ".ion-no-padding.ion-no-margin.ion-text-center.ion-align-self-center.nv-padding-8.cursePointer.opcion-no-active.md.hydrated"
