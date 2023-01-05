@@ -25,8 +25,73 @@ async function clearText(page, selector) {
   }, selector);
 }
 
+// Submit Form (form ids change every time)
+async function submitForm(page, frame, contestText, time) {
+  // Wait some time for desired contest to load (Just in case)
+  await new Promise((r) => setTimeout(r, 500));
+  // Scroll to bottom of page
+  await page.keyboard.down("End");
+  // Wait some time to reach bottom of page (Just in case)
+  await new Promise((r) => setTimeout(r, 500));
+  // Click on desired contest
+  await clickByText(frame, contestText);
+  // Wait some time for page to load (Just in case)
+  await new Promise((r) => setTimeout(r, 500));
+
+  // Wait and click "Si" button
+  const yes_button = await frame.$$(
+    "xpath/" +
+      "//html/body/app-root/app-concursos/div/concursos-select/ion-content/ion-grid/ion-row/ion-col/div/div/select-group-concurso-club/select-concurso-club/div/ion-row[2]/ion-col/ion-radio-group/div[2]/ion-item"
+  );
+  await yes_button[0].click();
+  // Wait and click "Continuar" button
+  const continue_button = await frame.$$(
+    "xpath/" +
+      "//html/body/app-root/app-concursos/div/concursos-select/ion-content/ion-grid/ion-row/ion-col/div/ion-row[2]/ion-col/button"
+  );
+  await continue_button[0].click();
+  // Wait some time for page to load (Just in case)
+  await new Promise((r) => setTimeout(r, 500));
+
+  // Empty form
+  await clearText(frame, `#mat-input-${time}`);
+  await clearText(frame, `#mat-input-${time+1}`);
+  await clearText(frame, `#mat-input-${time+2}`);
+  await clearText(frame, `#mat-input-${time+3}`);
+  await clearText(frame, `#mat-input-${time+4}`);
+
+  // Fill Form
+  // Name
+  await frame.type(`#mat-input-${time}`, process.env.NAME);
+  // Last Name
+  await frame.type(`#mat-input-${time+1}`, process.env.LAST_NAME);
+  // RUT
+  await frame.type(`#mat-input-${time+2}`, process.env.RUT2);
+  // Email
+  await frame.type(`#mat-input-${time+3}`, process.env.EMAIL);
+  // Phone
+  await frame.type(`#mat-input-${time+4}`, process.env.PHONE);
+
+  // Click "Concursar" button
+  const entry_button = await frame.$$(
+    "xpath/" +
+      "//html/body/app-root/app-concursos/div/formulario-datos-personales/ion-content/ion-grid/ion-row/ion-col/form/div/ion-row[10]/ion-col/button"
+  );
+  await entry_button[0].click();
+
+  // Wait some time for page to load (Just in case)
+  await new Promise((r) => setTimeout(r, 500));
+
+  // Return to list of contests
+  const return_button = await frame.$$(
+    "xpath/" +
+      "/html/body/app-root/app-concursos/div/concursos-ok/ion-content/ion-grid/ion-row/ion-col/div/ion-row[5]/ion-col[1]/button"
+  );
+  await return_button[0].click();
+}
+
 // Main function
-async function run(contestText) {
+async function run(amount, contestText) {
   // Launch the browser
   const browser = await puppeteer.launch({
     headless: false,
@@ -65,57 +130,13 @@ async function run(contestText) {
   await frame.click(
     ".ion-no-padding.ion-no-margin.ion-text-center.ion-align-self-center.nv-padding-8.cursePointer.opcion-no-active.md.hydrated"
   );
-  // Wait some time for desired contest to load (Just in case)
-  await new Promise((r) => setTimeout(r, 500));
-  // Scroll to bottom of page
-  await page.keyboard.down("End");
-  // Wait some time to reach bottom of page (Just in case)
-  await new Promise((r) => setTimeout(r, 500));
-  // Click on desired contest
-  await clickByText(frame, contestText);
-  // Wait some time for page to load (Just in case)
-  await new Promise((r) => setTimeout(r, 500));
 
-  // Wait and click "Si" button
-  const yes_button = await frame.$$(
-    "xpath/" +
-      "//html/body/app-root/app-concursos/div/concursos-select/ion-content/ion-grid/ion-row/ion-col/div/div/select-group-concurso-club/select-concurso-club/div/ion-row[2]/ion-col/ion-radio-group/div[2]/ion-item"
-  );
-  await yes_button[0].click();
-  // Wait and click "Continuar" button
-  const continue_button = await frame.$$(
-    "xpath/" +
-      "//html/body/app-root/app-concursos/div/concursos-select/ion-content/ion-grid/ion-row/ion-col/div/ion-row[2]/ion-col/button"
-  );
-  await continue_button[0].click();
-  // Wait some time for page to load (Just in case)
-  await new Promise((r) => setTimeout(r, 500));
-
-  // Empty form
-  await clearText(frame, "#mat-input-0");
-  await clearText(frame, "#mat-input-1");
-  await clearText(frame, "#mat-input-2");
-  await clearText(frame, "#mat-input-3");
-  await clearText(frame, "#mat-input-4");
-
-  // Fill Form
-  // Name
-  await frame.type("#mat-input-0", process.env.NAME);
-  // Last Name
-  await frame.type("#mat-input-1", process.env.LAST_NAME);
-  // RUT
-  await frame.type("#mat-input-2", process.env.RUT2);
-  // Email
-  await frame.type("#mat-input-3", process.env.EMAIL);
-  // Phone
-  await frame.type("#mat-input-4", process.env.PHONE);
-
-  // Click "Concursar" button
-  const entry_button = await frame.$$(
-    "xpath/" +
-      "//html/body/app-root/app-concursos/div/formulario-datos-personales/ion-content/ion-grid/ion-row/ion-col/form/div/ion-row[10]/ion-col/button"
-  );
-  await entry_button[0].click();
+  // Do for 'amount' times
+  for (let i = 0; i < amount; i++) {
+    // Find contest and submit form
+    await submitForm(page, frame, contestText, i*5);
+    console.log(`Entry N°${i + 1} submitted successfully!\n`);
+  }
 
   // Wait some time for page to load (Just in case)
   await new Promise((r) => setTimeout(r, 3000));
@@ -125,5 +146,4 @@ async function run(contestText) {
   await browser.close();
 }
 
-contestText = "concurso movistar arena 13 de enero";
-run(contestText);
+run(parseInt(process.env.AMOUNT), process.env.CONTEST_TEXT);
