@@ -86,8 +86,6 @@ async function submitForm(page, frame, contestText, time) {
   );
   await entry_button[0].click();
 
-  await new Promise((r) => setTimeout(r, 2000));
-
   // Return to list of contests
   await frame.waitForXPath(
     "//html/body/app-root/app-concursos/div/concursos-ok/ion-content/ion-grid/ion-row/ion-col/div/ion-row[5]/ion-col[1]/button",
@@ -151,7 +149,7 @@ async function run(amount, contestText) {
   // Click on the login button
   await page.click("#botonLogin");
   // Wait for the page to load
-  await page.waitForSelector("#card-revisa-consumo");
+  await page.waitForSelector(".content-revisa-consumo");
 
   // Go to club-movistar page
   await page.goto("https://mi.movistar.cl/svr/#/main/club-movistar");
